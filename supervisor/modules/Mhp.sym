@@ -1,0 +1,18 @@
+;;GENERAL
+declare symbol Mhp.sem
+declare ff Mhp.freeId 0
+declare ff Mhp.previoustask 0
+declare be Mhp.request
+declare cwp Mhp.report
+declare cwp Mhp.result
+declare cwp Mhp.stop
+declare cwp Mhp.hasTrajectory
+declare op_predicate Mhp.init
+declare op_predicate getFreeId
+declare cwp Mhp.stopSetTrajectories
+declare op_predicate chooseTargetForTrajectory
+declare op_predicate Mhp.getTrajId
+declare op_predicate cleanTrajectories
+declare cwp Mhp.stopSetTrajectories
+declare cwp Mhp.previousTask
+declare cwp Mhp.gtpTask 

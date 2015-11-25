@@ -1,0 +1,8 @@
+(
+	(AGENT-STATEMENT PR2_ROBOT Bedroom scanned false)
+	(AGENT-STATEMENT PR2_ROBOT Kitchen_table scanned false)
+	(AGENT-STATEMENT PR2_ROBOT Livingroom scanned false)
+	(AGENT-STATEMENT PR2_ROBOT Livingroom_table scanned false)	
+	(AGENT-STATEMENT PR2_ROBOT Livingroom_coffeetable scanned false)
+	(AGENT-STATEMENT PR2_ROBOT PR2_ROBOT isAt Livingroom_table)
+)

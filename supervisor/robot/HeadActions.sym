@@ -1,0 +1,14 @@
+;general
+declare ff HeadActions.freeId 0
+declare be HeadActions.action
+declare cwp HeadActions.report
+declare cwp HeadActions.stop
+
+
+;init
+declare op_predicate HeadActions.init
+
+;getFreeId
+declare op_predicate HeadActions.getFreeId
+
+

@@ -1,0 +1,31 @@
+(
+;;PlannerInterface.action PLANNER_NAME PLANNER_ACTION SUPERVISOR_ACTION associates the name of an action returned by the planner PLANNER_NAME with the corresponding supervisor action.
+
+(PlannerInterface.action hatp TakeObject take)
+(PlannerInterface.action hatp MoveAndTakeObject take)
+(PlannerInterface.action hatp ThrowObject throw)
+(PlannerInterface.action hatp MoveAndThrowObject throw)
+(PlannerInterface.action hatp PutObject put)		
+(PlannerInterface.action hatp PutObjectVisibleAndReachable putAccessible)
+(PlannerInterface.action hatp GiveObject handover)
+(PlannerInterface.action hatp PlaceObject place)
+(PlannerInterface.action hatp ForceInformation undefined)
+(PlannerInterface.action hatp GiveInformationAbout undefined)
+(PlannerInterface.action hatp AskForInformation undefined)
+
+(PlannerInterface.action hatp TravelTo go)  
+(PlannerInterface.action hatp HandOver handover) 
+(PlannerInterface.action hatp Pick take)  
+(PlannerInterface.action hatp Place place) 
+(PlannerInterface.action hatp Clean clean) 
+(PlannerInterface.action hatp Glue glue) 
+(PlannerInterface.action hatp AttachBracket installBracket) 
+(PlannerInterface.action hatp StartPointing pointTo) 
+(PlannerInterface.action hatp StopPointing undefined) 
+(PlannerInterface.action hatp CarryTo go)
+
+(PlannerInterface.parameterLinks hatp TakeObject (. 0 1 .))
+(PlannerInterface.parameterLinks hatp PlaceObject (. 0 1 2 .))
+(PlannerInterface.parameterLinks hatp ThrowObject (. 0 1 2 .))
+
+)

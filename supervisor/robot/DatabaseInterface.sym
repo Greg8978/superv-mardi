@@ -1,0 +1,20 @@
+declare op_predicate DatabaseInterface.find      ;check for the presence of a fact in the db
+declare op_predicate DatabaseInterface.findList  ;a more powerful find function
+declare op_predicate DatabaseInterface.add       ;adds a fact in the db
+declare op_predicate DatabaseInterface.remove   ;removes a fact in the db
+declare op_predicate DatabaseInterface.addMonitor   ;monitors if a fact appears in the db
+declare op_predicate DatabaseInterface.removeMonitor  ;removes a monitor
+declare op_predicate DatabaseInterface.getResult    ;gets the result of a query
+declare op_predicate DatabaseInterface.setReachabilityFalse  ;sets an object as not reachable for the robot
+
+
+declare predicate Database.result  ;returns the result
+
+
+;;predicates to send to the Database, each one correspond to one of the functions above
+declare predicate Database.find 
+declare predicate Database.findList
+declare predicate Database.add
+declare predicate Database.remove
+declare predicate Database.addMonitor
+declare predicate Database.removeMonitor

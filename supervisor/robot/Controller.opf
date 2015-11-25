@@ -1,0 +1,81 @@
+;; -*-Lisp-*-
+;;author: Michelangelo Fiore
+;;this module contains procedures to handle spark requestes.
+
+(
+
+ (defop |stopAll|
+   :invocation (!(Controller.stopAll))
+   :documentation "Stops all the modules of the supervisor"
+   :body (
+	  (=>(MonitorManager.shouldRun FALSE))
+	  
+	  )
+   )
+
+ (defop |initAll|
+   :invocation (!(Controller.initAll))
+   :documentation "Starts all the modules of the supervisor"
+   :body (
+	  (IF(?(~(CHECKING-REPLY-G30-QUEUE)))
+	  (=>(START-AND-CHECK-REPLY-G3O-QUEUE-WITH-PRIORITY))
+	  (=>(START-AND-CHECK-REPLY-QUEUE-WITH-PRIORITY))
+	  )
+
+	  ;;activate modules
+      (IF(?(Mhp.isActive TRUE))
+	     (!(Mhp.init))
+	     )
+      (IF(?(Gtp.isActive TRUE))
+	     (!(GtpActions.init))
+	     )
+      (IF(?(||(Spark.isActive BASE SIM) (Spark.isActive BASE TRUE)))
+	     (!(Spark.init))
+	     (!(AgentActionMonitor.init))
+	     )
+      (IF(?(Viman.isActive TRUE))
+	     (!(Viman.init))
+	     )
+      (IF(?(Softmotion.isActive TRUE))
+	     (!(Softmotion.init))
+	     )
+      (IF(?(Acapela.isActive TRUE))
+	     (!(Acapela.init))
+	  )
+	  
+      ;;activate robot procedures
+
+      (!(ExecutionManager.init))
+      (IF(?(Timer.isActive TRUE))
+         (!(Timer.init))
+         )
+	  
+	  (IF(?(Robot.joints RIGHT_ARM))
+	     (!(ArmActions.init))
+	     )
+      (!(HeadActions.init))
+      (!(PlannerInterface.init))
+      (IF(?(MonitorManager.isActive TRUE))
+         (!(MonitorManager.init))
+         )
+      (!(DatabaseInterface.init))
+      (IF(?(PathPlanner.isActive TRUE))
+         (!(PathPlanner.init))
+         )
+      (IF(?(~(BaseActions.isActive FALSE)))
+         (!(BaseActions.init))
+         )
+
+
+	  ;;get the robot position and put a starting world state.
+	  (?(Robot.name @robotName))
+
+
+      ;      (!(GtpActions.getFreeId @gtpId))
+ ;     (=>(GtpActions.action moveTo sNaviPose @gtpId))
+  ;    (!(ExecutionManager.handleReport GtpActions @gtpId @executionId TRUE TRUE (. .) ))
+	  (=>(PlanManager.managePlans))
+
+	  )
+   )
+)

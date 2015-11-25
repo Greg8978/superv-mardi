@@ -1,0 +1,15 @@
+(
+
+
+
+	(defop |getRequest|
+	       :invocation(RequestManager.request @goal @parameters @caller)
+	       :body (
+		      (=>(PlanManager.goal (VAL @goal) (VAL @parameters)))
+		      (=>(PlanManager.newGoal TRUE))
+		      (^(PlanManager.report @report))
+;		      (!(SEND-MESSAGE @caller (RequestManager.report @report)))
+		      
+		      )
+	       )
+)

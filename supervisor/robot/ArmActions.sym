@@ -1,0 +1,21 @@
+declare cwp Robot.closeToObject
+
+;;global
+declare ff ArmActions.freeId 0  ;;id of a request
+declare be ArmActions.action ;;used for every invocation of an action
+declare cwp ArmActions.stop  ;;TRUE if the action must be stopped
+declare cwp ArmActions.report	    ;result of a request
+declare cwp ArmActions.hasDetectPressionRequest    ;;mantains the data of a detectpression request. Necessary when we want to cancel it. 
+declare op_predicate ArmActions.handleReport  ;generalizes handling of a report
+declare op_predicate ArmActions.getFreeId    ;gets an id
+declare op_predicate ArmActions.init         ;starts the module
+declare symbol ArmActions.sem
+
+;;mantains data of a gripperGrab or GripperRelease request, useful to interrupt them
+declare cwp ArmActions.hasGripperReleaseRequest
+declare cwp ArmActions.hasGripperGrabRequest
+
+
+
+
+

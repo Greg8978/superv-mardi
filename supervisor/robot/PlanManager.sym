@@ -1,0 +1,29 @@
+;general
+declare ff PlanManager.isRunning 0
+declare cwp PlanManager.isManagingAgent
+declare ff PlanManager.agentReport 1
+declare cwp PlanManager.stopAgent
+declare ff PlanManager.actionReport 1
+declare cwp PlannerInterface.report 
+declare be PlanManager.managePlans
+declare cwp PlanManager.stop
+declare cwp PlanManager.actionTold 
+declare ff PlanManager.planningModality 0
+declare be AttentionalInterface.execute
+declare be AttentionalInterface.isDone
+
+
+;manage plans
+declare be PlanManager.managePlans
+declare ff PlanManager.maxPlanningTime 0
+declare ff PlanManager.maxPlanningFailures 0
+declare ff PlanManager.timeToRetry 0
+declare ff PlanManager.shouldRun 0
+declare ff PlanManager.newGoal 0
+declare ff PlanManager.goal 0
+declare ff PlanManager.shouldTellPlan 0
+
+declare op_predicate PlanManager.clean
+
+declare be PlanManager.manageRobotActions
+declare be PlanManager.manageHumanActions

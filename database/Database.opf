@@ -1,0 +1,578 @@
+;; -*-Lisp-*--
+;;author: Michelangelo Fiore
+;;this files contains procedures to manage the Database in the supervision system.
+;; GENERAL INFO
+;; $facts are always composed terms like (fact a)
+;; each procuder sends back a message (Database.result $RESULT)
+
+(
+
+
+  (defop |getMonitorId|
+    :invocation (!(Database.getMonitorId $returnId))
+    :body (
+      (IF(?(Database.freeId @id))
+        (!(= $returnId @id ))
+        (=>(Database.freeId (+ @id 1)))
+
+        ELSE
+        (!(= $returnId 0))
+        (=>(Database.freeId 1))
+
+        )
+
+      )
+
+    )
+
+ (defop |registerConnection|
+   :invocation(Database.connect @name)
+   :body (
+          (=>(Database.isConnected @name))
+          (!(Database.sendWorldState @name));
+          )
+   )
+
+
+
+ (defop |sendWorldState|
+   :invocation(!(Database.sendWorldState @name))
+   :body (
+          (!(Database.findListLocal (AGENT-STATEMENT @model @subject @predicate @value) (. @model @subject @predicate @value .) @result))
+          (!(= @n (LENGTH @result)))
+          (!(SEND-MESSAGE @name (Database.nfacts @n)))
+          (WHILE(?(~(NULL @result)))
+                (!(= @element (CAR @result)))
+                (!(= @result (CDR @result)))
+
+                (!(== (VAL @element) (. @model @subject @predicate @value .)))
+
+                (!(SEND-MESSAGE @name (Database.operation add (AGENT-STATEMENT @model @subject @predicate @value ))))
+                )
+
+
+
+          )
+   )
+
+
+(defop |setReachabilityFalse| 
+  :invocation(Database.setReachabilityFalse @object @caller)
+  :documentation "Used to change the reachability of an object from the supervisor. This is used because sometimes (often) SPARK overestimates the capacity of the robot to reach objects"
+  :body (
+         (?(Robot.name @robotName))
+
+     (=>(AGENT-STATEMENT (VAL @robotName) (VAL @object) isReachable false))
+     (~>(AGENT-STATEMENT (VAL @robotName) (VAL @object isReachable true)))
+     (~>(AGENT-STATEMENT (VAL @robotName) (VAL @object) isReachableBy (VAL @robotName)))
+     (~>(AGENT-STATEMENT HERAKLES_HUMAN1 (VAL @object) isReachableBy (VAL @robotName)))
+	 (=>(Flag.ignoreReachability (VAL @object)))
+	 (!(SEND-MESSAGE @caller (Database.result (. OK .) )))
+	 
+	 )
+  )
+
+ 
+ (defop |checkAndApplyDbRules| 
+   :invocation (!(Database.checkAndApplyDbRules @fact $newFactList))
+   :documentation "this procedure looks into the database rules (used at the moment because the planner or other modules may require that the facts are expressed in a different form) for a given fact and applies them. At the
+moment we keep the original fact. This is because different modules could want the facts formatted in different ways and we could need the original formatting too. Doing this procedure in a generic way it's really not
+easy if we want to keep the rules list small. For know I will do a series of IF and then i'll think on how to make it better.
+The result is returned into $newFact. If it's not bounded than no rules have been applied"
+   :body   (
+    (!(= @newFactListTemp (. .)))    
+    (IF(!(== (VAL @fact) (AGENT-STATEMENT @agentModel @subject @predicate @value)))
+       
+       (IF(?(NUMBERP @subject))
+	  (!(= @subjectClass AGENT))
+	 
+	  ELSE
+	    (IF(?(Object.type (VAL @subject) @st @subjectClass))
+	       (?(Object.type (VAL @subject) @st @subjectClass))
+	       ELSE
+	       (!(SUCCEED))
+	       )
+	  )
+       (IF(?(Object.type (VAL @value) @vt @valueClass))
+	  (?(Object.type (VAL @value) @vt @valueClass))
+	  
+	  ELSE
+	  (!(= @valueClass @value))
+	  
+	  )
+       (!(= @i 0))
+       (WHILE(?(DbRule.rule (VAL @subjectClass) (VAL @predicate) (VAL @valueClass) @newSubjectClass @newPredicate @newValueClass (VAL @i)))
+	     (IF(?(EQUAL @newSubjectClass @subjectClass))
+		(!(= @newFactSubject @subject))
+		
+		ELSE
+		(!(= @newFactSubject @value))
+		)
+	     (IF(?(EQUAL @newValueClass @subjectClass))
+		(!(= @newFactValue @subject))
+		ELSEIF(?(EQUAL @newValueClass @valueClass))
+		(!(= @newFactValue @value))
+		ELSE
+		(!(= @newFactValue @newValueClass))
+		)
+	     (!(= @newFactListTemp (CONS-TAIL (AGENT-STATEMENT @agentModel @newFactSubject @newPredicate @newFactValue) @newFactListTemp)))
+	     
+	     (!(= @i (+ @i 1)))
+	     )
+
+       (!(= @change FALSE))
+       (IF(?(DbRule.type (VAL @subject) @subjectClass))
+	  (?(DbRule.type (VAL @subject) @subjectClass))
+	  (!(= @change TRUE))
+	  )
+	  
+       (IF(?(DbRule.type (VAL @value) @valueClass))
+	  (!(= @change TRUE))
+	  (?(DbRule.type (VAL @value) @valueClass))
+	     
+	  )
+       (IF(?(EQUAL @change TRUE))
+	  (!(= @i 0))
+	  (WHILE(?(DbRule.rule (VAL @subjectClass) (VAL @predicate) (VAL @valueClass) @newSubjectClass @newPredicate @newValueClass (VAL @i)))
+		(IF(?(EQUAL @newSubjectClass @subjectClass))
+		   (!(= @newFactSubject @subject))
+		   
+		   ELSE
+		   (!(= @newFactSubject @value))
+		   )
+		(IF(?(EQUAL @newValueClass @subjectClass))
+		   (!(= @newFactValue @subject))
+		   ELSEIF(?(EQUAL @newValueClass @valueClass))
+		   (!(= @newFactValue @value))
+		   ELSE
+		   (!(= @newFactValue @newValueClass))
+		   )
+		(!(= @newFactListTemp (CONS-TAIL (AGENT-STATEMENT @agentModel @newFactSubject @newPredicate @newFactValue) @newFactListTemp)))
+		
+		(!(= @i (+ @i 1)))
+		)
+	  )
+       )
+       (!(= $newFactList @newFactListTemp))
+       )
+
+    )
+   
+ (defop |update|
+   :invocation (Database.update @fact @caller)
+   :body (
+
+	  (!(Database.updateLocal @fact))
+	  (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+	  
+	  
+	  )
+   )
+
+
+ (defop |updateLocal|
+   :invocation (!(Database.update @fact))
+   :body (
+	  
+	  (!(== (VAL @fact) (AGENT-STATEMENT @agentModel @subject @predicate @newValue)))
+       	  (IF(?(AGENT-STATEMENT (VAL @agentModel) (VAL @subject) (VAL @predicate)  @oldValue))
+	  (~>(AGENT-STATEMENT (VAL @agentModel) (VAL @subject) (VAL @predicate) (VAL @oldValue)))
+	  )
+	  (=>(VAL @fact))
+	  
+	  
+	  
+	  )
+   )
+ 
+ (defop |find| 
+   :invocation (Database.find @fact @caller)
+   :documentation "this procedure checks if a fact is present in the Database and send back the message TRUE
+or FALSE to the supervisor"
+   :body
+   (
+    (IF(?(VAL @fact))
+       (!(= @message (Database.result (. TRUE .))))
+       
+       ELSE
+       (!(= @message (Database.result (. FALSE .))))
+       )
+    
+    (!(SEND-MESSAGE @caller @message))
+    
+    )
+   )
+
+ (defop |findListLocal|
+   :invocation (!(Database.findListLocal @request @unboundVariables $result))
+   :body (
+	  (!(= $result (N-ALL @unboundVariables @request)))
+	  
+	  )
+   )
+ (defop |findList|
+   :invocation (Database.findList @request @unboundVariables @caller)
+   :documentation "this procedure returns in the variable $result a list of list, containing the values of the unbound variables. It's used parameters must be set as follows. $request= composed term like (fact 1 @b 3)  
+$unboundVariables= lisp-list containing the variables for which we want to find values. Continuing from the previous examples this would be (. @b .)"
+   :body 
+   (
+    
+					;    (!(= @request (fact 1 @b)))
+					;   (!(= @result (N-ALL (. @a @b .)
+    
+    
+    
+    (!(= @result (N-ALL @unboundVariables @request)))
+    (!(SEND-MESSAGE @caller (Database.result @result)))
+    
+    )
+   
+   )
+
+
+
+
+ (defop |checkMonitoring|
+  :invocation(!(Database.checkMonitoring @receivedFact))
+  :body (
+   (?(Robot.name @robotName))
+   (?(Database.supervisorName @supName))
+
+   (IF(?(toMonitor (VAL @receivedFact) @monitorId))
+     (!(= @ok TRUE))
+     (?(monitorList @factList (VAL @monitorId) @event))
+     (WHILE(?(&(EQUAL @ok TRUE) (~(NULL @factList))))
+       (!(= @ok FALSE))
+
+       (!(= @fact (CAR @factList)))
+       (!(= @factList (CDR @factList)))
+
+       (!(== (VAL @fact) (AGENT-STATEMENT (VAL @robotName) @subject @predicate @value)))
+       (IF(?(AGENT-STATEMENT (VAL @robotName) (VAL @subject) (VAL @predicate) (VAL @value)))
+        (!(= @ok TRUE))
+        )
+       )
+     (IF(?(EQUAL @ok TRUE))
+      (!(SEND-MESSAGE (VAL @supName) (VAL @event)))
+      )
+
+     )
+
+   )
+
+  )
+ 
+ (defop |addLocal|
+   :invocation (!(Database.add @fact))
+   :body (
+	  (?(Database.supervisorName @supName))
+
+	     (!(Database.checkAndApplyDbRules @fact @newFactList))
+         (=> (VAL @fact))
+
+	     (WHILE(?(~(NULL @newFactList)))
+		   (!(= @newFact (CAR @newFactList)))
+		   (!(= @newFactList (CDR @newFactList)))
+		   (=>(VAL @newFact))
+           (!(Database.checkMonitoring @newFact))
+
+           (!(== (VAL @newFact) (AGENT-STATEMENT @agent @subject @predicate @value)))
+           (IF(?(Database.checkChanges (AGENT-STATEMENT (VAL @agent) (VAL @subject) (VAL @predicate)) @event @caller))
+              (!(SEND-MESSAGE @caller (Database.valueChange @event @value)))
+              )
+           )
+         (!(== (VAL @fact) (AGENT-STATEMENT @agent @subject @predicate @value)))
+
+         (IF(?(Database.checkChanges (AGENT-STATEMENT (VAL @agent) (VAL @subject) (VAL @predicate)) @event @caller))
+            (!(SEND-MESSAGE @caller (Database.valueChange @event @value)))
+            )
+
+         (!(Database.checkMonitoring @fact))
+
+
+         (IF(?(Database.isConnected @name))
+            (!(SEND-MESSAGE @name (Database.nfacts 1)))
+            (!(SEND-MESSAGE @name (Database.operation add)))
+            (!(SEND-MESSAGE @name @fact))
+            )
+
+	     )
+   )
+
+
+
+(defop |set|
+  :invocation(Database.set @fact @caller)
+  :body (
+         (?(Robot.name @robotName))
+         (!(== (VAL @fact) (AGENT-STATEMENT (VAL @robotName) @subject @predicate @value)))
+         (IF(?(AGENT-STATEMENT (VAL @robotName) (VAL @subject) (VAL @predicate) @oldValue))
+            (!(Database.remove (AGENT-STATEMENT (VAL @robotName) @subject @predicate @oldValue)))
+            )
+         (=>(Database.add (VAL @fact) @caller))
+         )
+  )
+(defop |setLocal|
+  :invocation(!(Database.set @fact))
+  :body (
+         (?(Robot.name @robotName))
+         (!(== (VAL @fact) (AGENT-STATEMENT (VAL @robotName) @subject @predicate @value)))
+         (IF(?(AGENT-STATEMENT (VAL @robotName) (VAL @subject) (VAL @predicate) @oldValue))
+            (!(Database.remove (AGENT-STATEMENT (VAL @robotName) @subject @predicate @oldValue)))
+            )
+         (!(Database.add @fact))
+         )
+
+  )
+   
+ (defop |add|
+   :invocation (Database.add @fact @caller)
+   :documentation "this procedure adds $fact into the database and returns $result. $fact= a composed term like (isOn cup_0 table_0). SHOULD CHECK FOR RULES BEFORE ADDING (What are these rules? To check)" 
+   :body ( 
+          (!(Database.add @fact))
+
+         (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+
+	     )
+   )
+(defop |removeLocal|
+  :invocation(!(Database.remove @fact))
+  :body (
+	 (?(Database.supervisorName @supName))	 
+	 (!(Database.checkAndApplyDbRules @fact @newFactList))
+
+	 (WHILE(?(~(NULL @newFactList)))
+	       (!(= @newFact (CAR @newFactList)))
+	       (!(= @newFactList (CDR @newFactList)))
+           ;(!(Database.checkMonitoring @newFact))
+;	       (!(PRINT @newFact))
+	       (~>(VAL @newFact))
+	       )
+     ;(!(Database.checkMonitoring @false))
+;	 (!(PRINT @fact))
+	 (~> (VAL @fact))
+     (IF(?(Database.isConnected @name))
+        (!(SEND-MESSAGE @name (Database.nfacts 1)))
+        (!(SEND-MESSAGE @name (Database.operation remove)))
+        (!(SEND-MESSAGE @name @fact))
+        )
+	 )
+)
+ (defop |remove|
+   :invocation (Database.remove @fact @caller)
+   :documentation "this procedure removes $fact from the database. $fact= a composed termi like (isOn cup_0 table_0)"
+   :body (
+	 
+	  (!(Database.remove @fact))
+	  
+	  (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+	  
+	   
+	  )
+   )
+
+
+(defop |cancelRegisterToChanges|
+  :invocation (Database.cancelRegisterToChanges @fact @event @caller)
+  :body (
+         (~>(Database.checkChanges (VAL @fact) (VAL @event) (VAL @caller)))
+         (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+         )
+  )
+(defop |registerToChanges|
+  :invocation (Database.registerToChanges @fact @event @caller)
+  :body (
+         (=>(Database.checkChanges (VAL @fact) (VAL @event) (VAL @caller)))
+         (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+         )
+  )
+ (defop |monitorFact|
+   :invocation (Database.addMonitor @factsToMonitor @event @caller)
+   :documentation "this procedure sets up a monitor for a given fact. When this fact is first added to the Database it returns $eventName to the current kernel. $fact and $event are both composed terms"
+   :body (
+	  
+      (IF (?(monitorList (VAL @factsToMonitor) @anEvent))
+	      (!(SEND-MESSAGE @caller (Database.result (. ERROR .))))
+	      
+          ELSE
+          (!(Database.getMonitorId @monitorId))
+          (=>(monitorList (VAL @factsToMonitor) (VAL @monitorId) (VAL @event)))
+          (WHILE(?(~(NULL @factsToMonitor)))
+                (!(= @aFact (CAR @factsToMonitor)))
+                (!(= @factsToMonitor (CDR @factsToMonitor)))
+                (=> (toMonitor (VAL @aFact) (VAL @monitorId)))
+                )
+
+	      (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+	      
+	      )	  
+	  )
+   )
+ (defop |removeMonitorFact|
+   :invocation (Database.removeMonitor @factsToMonitor @caller)
+   :documentation "this procedure removes a monitor for a given fact."
+   :body (
+
+          (?(monitorList (VAL @factsToMonitor) @monitorId @event))
+          (~>(monitorList (VAL @factsToMonitor) (VAL @monitorId) (VAL @event)))
+
+          (WHILE(?(toMonitor @fact (VAL @monitorId)))
+                (~>(toMonitor (VAL @fact) (VAL @monitorId)))
+                )
+
+          (!(SEND-MESSAGE @caller (Database.result (. OK .))))
+          )
+   )
+
+
+(defop |DbCopyBM|
+  :invocation (DbCopyBM @senderId @dbCopyId @agent @requestList)
+  :body (
+
+	 (!(= @resultList (. .)))
+
+	 (WHILE(?(~(NULL @requestList)))
+	       (!(= @request (CAR @requestList)))
+	       (!(= @requestList (CDR @requestList)))
+	       
+	       (!(= @subject (CAR @request)))
+	       (!(= @request (CDR @request)))
+	       (!(= @result (. .)))
+	       (WHILE(?(~(NULL @request)))
+		     (!(= @predicate (CAR @request)))
+		     (!(= @request (CDR @request)))
+		     
+		     (!(= @result (ALL @someValue (AGENT-STATEMENT (VAL @agent) (VAL @subject) (VAL @predicate) @someValue))))
+		     (!(= @resultList (CONS-TAIL @result @resultList)))
+		   ;  (IF(?(AGENT-STATEMENT (VAL @agent) (VAL @subject) (VAL @predicate) @value))
+		;	(!(= @result (CONS-TAIL @value @result)))
+		;	)
+		     
+		     )
+
+	       )
+	 (!(= @message (DbCopyRes @dbCopyId ok @resultList)))
+	 (!(PRINT @message))
+	 (!(SEND-MESSAGE @senderId @message))
+	 ;DbCopyRes 0 ok ((. (. .) (. .)   .))
+	 )
+ 
+   )
+ (defop |DbCopy|
+  :invocation (DbCopy @senderId @dbCopyId @requestList)
+  :body (
+
+	 (!(= @resultList (. .)))
+
+	 (WHILE(?(~(NULL @requestList)))
+	       (!(= @request (CAR @requestList)))
+	       (!(= @requestList (CDR @requestList)))
+	       
+	       (!(= @subject (CAR @request)))
+	       (!(= @request (CDR @request)))
+	       (!(= @result (. .)))
+	       (WHILE(?(~(NULL @request)))
+		     (!(= @predicate (CAR @request)))
+		     (!(= @request (CDR @request)))
+             (!(= @result (ALL @someValue (AGENT-STATEMENT (VAL @robotName) (VAL @subject) (VAL @predicate) @someValue))))
+		     (!(= @resultList (CONS-TAIL @result @resultList)))
+           ;  (IF(?(AGENT-STATEMENT (VAL @robotName) (VAL @subject) (VAL @predicate) @value))
+		;	(!(= @result (CONS-TAIL @value @result)))
+		;	)
+		     
+		     )
+
+	       )
+	 (!(= @message (DbCopyRes @dbCopyId ok @resultList)))
+	 (!(PRINT @message))
+	 (!(SEND-MESSAGE @senderId @message))
+	 ;DbCopyRes 0 ok ((. (. .) (. .)   .))
+	 )
+ 
+   )
+
+ 
+(defop |cleanDb|
+	:invocation(Database.cleanDb @caller)
+	:documentation "clean GTP Facts in the database"
+	:body (
+           (?(Robot.name @robotName))
+
+        (WHILE(?(AGENT-STATEMENT (VAL @robotName) @object1 isReachableBy @object2))
+            (~>(AGENT-STATEMENT (VAL @robotName) @object1 isReachableBy @object2))
+			)
+        (WHILE(?(AGENT-STATEMENT (VAL @robotName) @object1 isVisibleBy @object2))
+            (~>(AGENT-STATEMENT (VAL @robotName) @object1 isVisibleBy @object2))
+			)
+        (WHILE(?(AGENT-STATEMENT (VAL @robotName) @object1 isOn @object2))
+            (~>(AGENT-STATEMENT (VAL @robotName) @object1 isOn @object2))
+			)
+        (WHILE(?(AGENT-STATEMENT (VAL @robotName) @object1 isIn @object2))
+            (~>(AGENT-STATEMENT (VAL @robotName) @object1 isIn @object2))
+			)
+        (WHILE(?(AGENT-STATEMENT (VAL @robotName) @object1 isNextTo @object2))
+            (~>(AGENT-STATEMENT (VAL @robotName) @object1 isNextTo @object2))
+			)
+		
+		(!(SEND-MESSAGE @caller (Database.result (. OK .) )))
+		
+		)
+	) 
+
+(defop |addSetRemoveFactsLocal|
+  :invocation(Database.addSetRemoveFacts @addFacts @setFacts @removeFacts @caller)
+  :body (
+         (WHILE(?(~(NULL @addFacts)))
+               (!(= @fact (CAR @addFacts)))
+               (!(= @addFacts (CDR @addFacts)))
+
+               (!(Database.add @fact))
+               )
+         (WHILE(?(~(NULL @setFacts)))
+               (!(= @fact (CAR @setFacts)))
+               (!(= @setFacts (CDR @setFacts)))
+
+               (!(Database.set @fact))
+               )
+         (WHILE(?(~(NULL @removeFacts)))
+               (!(= @fact (CAR @removeFacts)))
+               (!(= @removeFacts (CDR @removeFacts)))
+
+               (!(Database.remove @fact))
+               )
+         (!(SEND-MESSAGE @caller (Database.result (. OK .) )))
+         )
+  )
+(defop |addPredicates|
+  :invocation (!(Database.addPredicates @subjectList @predicateList @valueList))
+  :body (
+         (?(Robot.name @robotName))
+
+	 (WHILE(?(~(NULL @subjectList)))
+	       (!(= @subject (CAR @subjectList)))
+	       (!(= @subjectList (CDR @subjectList)))
+	       
+	       (!(= @predicates @predicateList))
+	       (WHILE(?(~(NULL @predicates)))
+		     (!(= @predicate (CAR @predicates)))
+		     (!(= @predicates (CDR @predicates)))
+		     
+		     (!(= @values @valueList))
+		            
+		     (WHILE(?(~(NULL @values)))
+			   (!(= @value (CAR @values)))
+			   (!(= @values (CDR @values)))
+			   
+               (!(Database.add (AGENT-STATEMENT (VAL @robotName) @subject @predicate @value)))
+			   )
+		     )
+	       )
+	 
+	 )
+  )
+
+ 
+
+
+ )
+

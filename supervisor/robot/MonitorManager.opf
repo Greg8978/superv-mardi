@@ -1,0 +1,214 @@
+;; -*-Lisp-*-
+;;author: Michelangelo Fiore
+;;this files contains procedures to monitor the environment, at the moment only by moving the head of the robot. Future versions of this module should allow the robot to move it's base too, but then, of course, everything becomes quite more complicated =). The monitoring is at the moment done using a priority queue, that indicates which item or agent the robot should look at and which conditions should be satisfied for the monitoring to be considered successfull. We can also have an ID associated to each monitor operation, so that the MonitorManager can inform other procedures of the success of the monitoring. We can also include a list of failure conditions. If these happen the monitoring is considered failed. It could be someting as simple as time-1elapsed. 
+
+
+	     
+(
+(defop |init|
+  :invocation(!(MonitorManager.init))
+  :documentation "Inits the basic facts of the monitor manager"
+  :body (
+	 (!(Queue.init MonitorManager.highPriorityQueue))   ;creates the priority queue
+	 (!(Queue.init MonitorManager.mediumPriorityQueue))
+	 (!(Queue.init MonitorManager.lowPriorityQueue))
+	 (=>(MonitorManager.shouldRun TRUE))   
+	 (=>(MonitorManager.freeId 0))
+	 (=>(MonitorManager.startLoop FALSE))
+	 )
+  )
+
+(defop |getFreeId|
+  :invocation(!(MonitorManager.getFreeId $id))
+  :body (
+	 (?(MonitorManager.freeId $id))
+	 (=>(MonitorManager.freeId (+ $id 1)))
+	 )
+  )
+
+
+(defop |addTargetToQueue|
+   :invocation (!(MonitorManager.monitorTarget @target @targetPart @priority @monitorId))
+   :documentation "this procedure  adds a target into the priority queue. 
+@target is the name of the item\agent to monitor.
+@successConditions and @failureConditions are  lisp-lists (. @andConditions @orContisions .) where @andConditions and @orConditions are lisp-lists composed of facts such as (. (TIME-ELAPSED(TIME) 30) (fact a) .). When this conditions become true the monitoring succed\fails. @a3ndConditions becomes true when all the sub-conditions are true, @orConditions when at least one becomes true (this is necessary because I can't make a generic variable containing facts with logic expression be evaluated without making oprs crash).  
+@priority is the priority of monitoring.
+@monitorId is the id used for the return result of the function. "
+   :body (
+	  (=> (MonitorManager.freeId (+ @monitorId 1))) 
+
+      (=>(MonitorManager.target (VAL @target) (VAL @targetPart) (VAL @priority) (VAL @monitorId)))
+
+      (!(= @queueElement (. (VAL @target) (VAL @targetPart) (VAL @monitorId) .) ))
+
+	  (IF(?(EQUAL @priority HIGH))
+	     (!(Queue.push (VAL @queueElement) MonitorManager.highPriorityQueue))
+	     ELSEIF(?(EQUAL @priority MEDIUM))
+	     (!(Queue.push @queueElement MonitorManager.mediumPriorityQueue))
+	     ELSE
+	     (!(Queue.push @queueElement MonitorManager.lowPriorityQueue))
+	     )
+	  (IF(?(Queue.isEmpty MonitorManager.highPriorityQueue FALSE))
+	     (=>(MonitorManager.highestAvailablePriority HIGH))
+	     
+	     ELSEIF(?(Queue.isEmpty MonitorManager.mediumPriorityQueue FALSE))
+	     (=>(MonitorManager.highestAvailablePriority MEDIUM))
+	     
+	     ELSEIF(?(Queue.isEmpty MonitorManager.lowPriorityQueue FALSE))
+		(=>(MonitorManager.highestAvailablePriority LOW))
+		
+		)
+	  (IF(?(MonitorManager.startLoop FALSE))
+	     (=>(MonitorManager.startLoop TRUE))
+	     )
+
+   	  )
+
+   )
+
+ (defop |MonitorLoop|
+   :invocation (MonitorManager.startLoop TRUE)
+   :documentation "this is the main loop for the MonitorManager. It monitors the first element of the priority queue until there is a new first element, its postconditions are verified or its failing conditions are verified."
+   :body (
+
+          (?(Robot.name @robotName))
+
+	  (WHILE(?(&(|| (Queue.isEmpty MonitorManager.highPriorityQueue FALSE) (Queue.isEmpty MonitorManager.mediumPriorityQueue FALSE) (Queue.isEmpty MonitorManager.lowPriorityQueue FALSE) ) (MonitorManager.shouldRun TRUE))) ;who should set this false? Is this fake and the loop should go on forever or until a shutdown? =)
+
+		(IF(?(Queue.isEmpty MonitorManager.highPriorityQueue FALSE))
+		   (!(= @queueInUse MonitorManager.highPriorityQueue))
+		   (!(= @priority HIGH))
+		   
+		   ELSEIF(?(Queue.isEmpty MonitorManager.mediumPriorityQueue FALSE))
+		   (!(= @queueInUse MonitorManager.mediumPriorityQueue))
+		   (!(= @priority MEDIUM))
+		   
+		   ELSEIF(?(Queue.isEmpty MonitorManager.lowPriorityQueue FALSE))
+		   (!(= @queueInUse MonitorManager.lowPriorityQueue))
+		   (!(= @priority LOW))
+		   )
+		(!(Queue.head @toMonitor (VAL @queueInUse)))
+		(IF(?(~(NULL @toMonitor)))  ;;in some cases the list could be in use while we wait to get the head and it could be empty after that. Better to check again. Multi-thread is a bitch.
+           (!(== (VAL @toMonitor) (. @target @targetPart @monitorId .) ) )
+		       
+		   (=>(MonitorManager.isMonitoringTarget @monitorId))
+		   
+        ;   (!(MonitorManager.findTarget @target @targetPart @result))
+         ;  (IF(?(EQUAL @result TRUE))
+          ;    (IF(?(Object.isTrackable (VAL @target) TRUE))
+           ;      (!(HeadActions.getFreeId @actionId))
+            ;     (!(ReportManager.sub HeadActions.report @actionId))
+             ;    (=>(HeadActions.action track (VAL @target) (VAL @actionId)))
+              ;   (^(HeadActions.report (VAL @actionId) @executionReport))
+               ;  (!(ReportManager.unsub HeadActions.report @actionId))
+                ; )
+
+		   (!(HeadActions.getFreeId @actionId))
+		   (!(ReportManager.sub HeadActions.report @actionId))
+		   (=>(HeadActions.action lookAt (VAL @target) @targetPart @actionId))
+		   (^(HeadActions.report (VAL @actionId) @executionReport))
+		   (!(ReportManager.unsub HeadActions.report @actionId))
+
+              (^(MonitorManager.cancelMonitoring (VAL @monitorId))) ;(&(MonitorManager.highestAvailablePriority @newP) (> @newP @priority))))
+
+              (IF(?(MonitorManager.cancelMonitoring (VAL @monitorId)))
+                 (~>(MonitorManager.cancelMonitoring (VAL @monitorId)))
+                 (!(ReportManager.publish MonitorManager.report @monitorId "OK"))
+                 (!(Queue.pop (VAL @queueInUse)))
+                 (~>(MonitorManager.target @target @targetPart @priority (VAL @monitorId)))
+                 )
+
+             ;;  ELSE
+           ;;    (!(ReportManager.publish MonitorManager.report @monitorId "FAILURE"))
+           ;;    (!(Queue.pop (VAL @queueInUse)))
+           ;;    (~>(MonitorManager.target @target @targetPart @priority (VAL @monitorId)))
+           ;; )
+
+           (~>(MonitorManager.isMonitoringTarget (VAL @monitorId)))
+
+           (IF(?(Queue.isEmpty MonitorManager.highPriorityQueue FALSE))
+              (=>(MonitorManager.highestAvailablePriority HIGH))
+			 
+              ELSEIF(?(Queue.isEmpty MonitorManager.mediumPriorityQueue FALSE))
+              (=>(MonitorManager.highestAvailablePriority MEDIUM))
+			 
+              ELSEIF(?(Queue.isEmpty MonitorManager.lowPriorityQueue FALSE))
+              (=>(MonitorManager.highestAvailablePriority LOW))
+		
+			 )
+
+           )
+        )
+	  (=>(MonitorManager.startLoop FALSE))
+	  )
+   )
+
+(defop |findTarget|
+  :invocation(!(MonitorManager.findTarget @target @targetPart $result))
+  :documentation "Explores the environment to find the target"
+  :body (
+         (!(HeadActions.getFreeId @actionId))  ;we link execution to an ID. This is the last used ID + 1 (needs to be implemented
+         (!(ReportManager.sub HeadActions.report @actionId))
+         (=>(HeadActions.action lookAt (VAL @target) (VAL @targetPart) (VAL @actionId)))
+         (^(HeadActions.report (VAL @actionId) @executionReport))
+         (!(ReportManager.unsub HeadActions.report @actionId))
+
+         ; (!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @robotName) sees (VAL @target)) @result))
+         ; (IF(?(EQUAL @result (. FALSE .)))
+         ;    (!(= @dirList (. RIGHT UP LEFT LEFT DOWN DOWN RIGHT RIGHT RIGHT .)))
+
+         ;    (WHILE(?(&(~(NULL @dirList) (EQUAL @found FALSE))))
+         ;          (!(= @aDir (CAR @dirList)))
+         ;          (!(= @dirList (CDR @dirList)))
+
+         ;          (!(ReportManager.sub HeadActions.report @actionId))
+         ;          (=>(HeadActions.action moveHeadDirection @aDir (VAL @actionId)))
+         ;          (^(HeadActions.report (VAL @actionId) @executionReport))
+         ;          (!(ReportManager.unsub HeadActions.report @actionId))
+
+         ;          (!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @robotName) sees (VAL @target)  @result)))
+         ;          (!(= @found (CAR @result)))
+         ;          )
+
+         ;    (IF(?(EQUAL @found FALSE))
+         ;       (!(ReportManager.sub Viman.report @actionId))
+         ;       (=>(Viman.request switch WIDE (VAL @actionId)))
+         ;       (^(Viman.report (VAL @actionId) @executionReport))
+         ;       (!(ReportManager.unsub Viman.report @actionId))
+
+         ;       (!(= @dirList (. LEFT RIGHT RIGHT .)))
+         ;       (WHILE(?(&(~(NULL @dirList) (EQUAL @found FALSE))))
+         ;             (!(= @aDir (CAR @dirList)))
+         ;             (!(= @dirList (CDR @dirList)))
+
+         ;             (!(ReportManager.sub HeadActions.report @actionId))
+         ;             (=>(HeadActions.action moveHeadDirection @aDir (VAL @actionId)))
+         ;             (^(HeadActions.report (VAL @actionId) @executionReport))
+         ;             (!(ReportManager.unsub HeadActions.report @actionId))
+
+         ;             (!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @robotName) sees (VAL @target)  @result)))
+         ;             (!(= @found (CAR @result)))
+         ;             )
+         ;       (!(ReportManager.sub Viman.report @actionId))
+         ;       (=>(Viman.request switch NARROW (VAL @actionId)))
+         ;       (^(Viman.report (VAL @actionId) @executionReport))
+         ;       (!(ReportManager.unsub Viman.report @actionId))
+         ;       )
+
+            ; (IF(?(EQUAL @found TRUE))
+               ; (!(HeadActions.getFreeId @actionId))  ;we link execution to an ID. This is the last used ID + 1 (needs to be implemented
+               ; (!(ReportManager.sub HeadActions.report @actionId))
+               ; (=>(HeadActions.action lookAt (VAL @target) (VAL @targetPart) (VAL @actionId)))
+               ; (^(HeadActions.report (VAL @actionId) @executionReport))
+               ; (!(ReportManager.unsub HeadActions.report @actionId))
+
+               (!(= $result TRUE))
+
+               ; ELSE
+               ; (!(= $result FALSE))
+               ; )
+         )
+
+  )
+  )
+)

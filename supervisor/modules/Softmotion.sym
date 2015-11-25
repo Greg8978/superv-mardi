@@ -1,0 +1,11 @@
+;;GENERAL
+
+declare ff Softmotion.freeId 0
+declare be Softmotion.request
+declare cwp Softmotion.stop
+declare cwp Softmotion.report
+declare cwp Softmotion.report
+
+declare op_predicate getFreeId
+
+
