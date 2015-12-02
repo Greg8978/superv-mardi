@@ -1,6 +1,13 @@
 (
 
+(Robot.paramNav NAV)
+(Robot.armPosture NAV)
+
+
 (Actions.nParameters scan 3)
+(Actions.nParameters approach 2)
+(Actions.nParameters disengage 2)
+(Actions.nParameters simpleGive 3)
 
 (PlannerInterface.action hatp Scan scan)
 (PlannerInterface.parameterLinks hatp Scan (. 0 1 2 .))
@@ -11,13 +18,18 @@
  (PlannerInterface.action hatp Handover handover)
  (PlannerInterface.action hatp Pick take)
  (PlannerInterface.action hatp Place place)
-
+ (PlannerInterface.action hatp Approach approach)
+ (PlannerInterface.action hatp Disengage disengage)
+(PlannerInterface.action hatp Handover simpleGive)
 
 
 (PlannerInterface.parameterLinks hatp Pick (. 0 1 .))
  (PlannerInterface.parameterLinks hatp Place (. 0 1 2 .))
  (PlannerInterface.parameterLinks hatp Scan (. 0 1 2 .))
  (PlannerInterface.parameterLinks hatp Travelto (. 0 1 .))
+(PlannerInterface.parameterLinks hatp Disengage (. 0 1 .))
+ (PlannerInterface.parameterLinks hatp Approach (. 0 1 .))
+(PlannerInterface.parameterLinks hatp Handover (. 0 1 2 .))
 
 
 

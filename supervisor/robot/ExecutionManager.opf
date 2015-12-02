@@ -287,6 +287,10 @@
 	 (~>(MonitorManager.monitorLink (VAL @monitorId) (VAL @executionId)))
 	 (=>(MonitorManager.cancelMonitoring (VAL @monitorId)))
 
+	(!(ExecutionManager.getFreeId @poseId))
+            (=>(ExecutionManager.execute moveToPose (. MANIPULATION_RIGHT .) @poseId))
+            (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))
+
       (!(ReportManager.publish ExecutionManager.report  (VAL @executionId) "OK"))
       (~>(ExecutionManager.isExecutingAction (VAL @executionId)))
       )
@@ -421,14 +425,14 @@
          (!(= @parameters (CDR @parameters)))
          (!(= @object (CAR @parameters)))
          (!(= @parameters (CDR @parameters)))
-         (!(= agent (CAR @parameters)))
+         (!(= @agent (CAR @parameters)))
          (!(= @parameters (CDR @parameters)))
 
          (IF(?(EQUAL @type GRAB))
             (!(= @preCondParameters (. @agent @object @robotName .)))
 
             ELSE
-            (!(= @preCondParameters (. @robotName @agent @object .)))
+            (!(= @preCondParameters (. @robotName @object @agent .)))
             )
 
          (!(Actions.checkPreconditions handover @preCondParameters @result))
@@ -473,17 +477,17 @@
 
 
             ELSE
-            (IF(?(NULL @result))
-               (!(= @arm LEFT))
-               ELSE
+;            (IF(?(NULL @result))
+   ;            (!(= @arm LEFT))
+ ;              ELSE
                (!(= @arm RIGHT))
-               )
+  ;             )
          )
          (=>(ExecutionManager.isExecutingAction (VAL @executionId)))
          (?(Spark.robotName @sparkRobotName))
 
-         (!(ExecutionManager.getFreeId @executionId))
-         (=>(ExecutionManager.action  moveToPose EXTENDED @executionId))
+   	(!(ExecutionManager.getFreeId @executionId))
+         (=>(ExecutionManager.execute  moveToPose (. EXTENDED .) @executionId))
          (!(ExecutionManager.handleReport ExecutionManager @executionId @executionId FALSE TRUE (. .)))
 
          (!(ArmActions.getFreeId @detectPressionId))
@@ -501,12 +505,102 @@
             (!(ArmActions.getFreeId @actionId))
             (=>(ArmActions.action closeGripper @arm @actionId))
             (!(ExecutionManager.handleReport ArmActions @actionId @executionId FALSE FALSE (. .)))
-            (!(= @postParams (. @agent @object @robotName @arm .)))
-            )
+            (!( @postParams (. @agent @object @robotName @arm .)))
+	   )
+
+(!(ExecutionManager.getFreeId @poseId))
+            (=>(ExecutionManager.execute moveToPose (. MANIPULATION_RIGHT .) @poseId))
+            (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))	
 
 
          (!(Actions.setPostconditions handover @postParams))
          (!(ExecutionManager.cleanModuleRequestes))
+
+	(~>(Mhp.previousTask @oldId @oldAltId))
+         (=>(Mhp.previousTask -2 -2))
+
+         (!(ReportManager.publish ExecutionManager.report  @executionId "OK"))
+
+
+         (~>(ExecutionManager.isExecutingAction (VAL @executionId)))
+
+
+
+         )
+
+
+  )
+
+
+(defop |simpleGive|
+  :invocation(ExecutionManager.execute simpleGive @parameters @executionId)
+  :documentation "a simple version of the handover that doesn't use pomdps"
+  :body (
+         (?(Robot.name @robotName))
+         (!(= @object (CAR @parameters)))
+         (!(= @parameters (CDR @parameters)))
+         (!(= @agent (CAR @parameters)))
+         (!(= @parameters (CDR @parameters)))
+
+
+            (!(= @preCondParameters (. @robotName @object @agent .)))
+
+         (!(Actions.checkPreconditions handover @preCondParameters @result))
+         (IF(?(EQUAL @result FALSE))
+            (!(ReportManager.publish ExecutionManager.report @executionId "FAILURE"))
+            (!(FAILED))
+            )
+
+         (IF(?(ExecutionManager.isActive execution SIM))
+               (!(= @postParameters (. @robotName @agent @object .)))
+
+            (!(Actions.setPostconditions handover @postParameters))
+            (!(ReportManager.publish ExecutionManager.report @executionId "OK"))
+            (!(FAILED))
+            )
+
+
+
+         (?(Spark.robotTorso @rTorso))
+         (?(Spark.humanHead @humanHead))
+
+         (!(= @monitorSuccessConditions (. (. (ExecutionManager.report (VAL @executionId) "OK") .) (. .) .)))
+         (!(= @monitorFailureConditions  (. (. .) (. (ExecutionManager.report (VAL @executionId) "FAILURE") (ExecutionManager.report (VAL @executionId) "STOPPED") .) .)))
+
+         ;;choose arm. We are sure that the robot has a free arm and has the object since we looked for that in the preconditions
+         (!(DatabaseInterface.findList (AGENT-STATEMENT (VAL @robotName) RIGHT @o) (. @o .) @result))
+
+
+               (!(= @arm RIGHT))
+         (=>(ExecutionManager.isExecutingAction (VAL @executionId)))
+         (?(Spark.robotName @sparkRobotName))
+
+   	(!(ExecutionManager.getFreeId @executionId))
+         (=>(ExecutionManager.execute  moveToPose (. EXTENDED .) @executionId))
+         (!(ExecutionManager.handleReport ExecutionManager @executionId @executionId FALSE TRUE (. .)))
+
+         (!(ArmActions.getFreeId @detectPressionId))
+         (=>(ArmActions.action detectPression @arm @type @detectPressionId))
+         (!(ExecutionManager.handleReport ArmActions @detectPressionId @executionId FALSE TRUE (. .)))
+
+            (!(ArmActions.getFreeId @actionId))
+            (!(ReportManager.sub ArmActions.report @actionId))
+            (=>(ArmActions.action openGripper @arm @actionId))
+            (!(ExecutionManager.handleReport ArmActions @actionId @executionId FALSE FALSE (. .)))
+            (!(= @postParams (. @robotName @object @agent @arm .)))
+
+
+(!(ExecutionManager.getFreeId @poseId))
+            (=>(ExecutionManager.execute moveToPose (. MANIPULATION_RIGHT .) @poseId))
+            (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))	
+
+
+         (!(Actions.setPostconditions handover @postParams))
+         (!(ExecutionManager.cleanModuleRequestes))
+
+	(~>(GtpActions.objectAttachment @attachId))
+	(~>(Mhp.previousTask @oldId @oldAltId))
+         (=>(Mhp.previousTask -2 -2))
 
          (!(ReportManager.publish ExecutionManager.report  @executionId "OK"))
 
@@ -943,6 +1037,10 @@
 
          (!(Actions.setPostconditions place @postParams))
 
+	(!(ExecutionManager.getFreeId @poseId))
+            (=>(ExecutionManager.execute moveToPose (. MANIPULATION_RIGHT .) @poseId))
+            (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))
+
          (!(ReportManager.publish ExecutionManager.report  @executionId "OK"))
 
 	 (~>(MonitorManager.monitorLink (VAL @monitorId) (VAL @executionId)))
@@ -1034,6 +1132,8 @@
          (=>(@requestCommand moveToPose @pose @actionId))
          (!(ExecutionManager.handleReport @moduleName @actionId @executionId TRUE TRUE (. .)))
 
+	(~>(Robot.armPosture @old))
+	(=>(Robot.armPosture @pose))
 
          (!(ReportManager.publish ExecutionManager.report  (VAL @executionId) "OK"))
      )
@@ -1062,8 +1162,90 @@
 	 (=>(ExecutionManager.report (VAL @executionId) "OK"))
 	 )
 )
-(defop |go| 
+
+(defop |go|
   :invocation (ExecutionManager.execute go @parameters  @executionId)
+  :documentation "Operation to make the robot reach a destination. @goal is the node in the map the should be reached, @subgoal the item"
+  :body (
+
+        (~>(Mhp.previousTask @oldId @oldAltId))
+         (=>(Mhp.previousTask -2 -2))
+
+         (!(= @goal (CAR @parameters)))
+         (!(= @parameters (CDR @parameters)))
+
+         (?(Robot.name @robotName))
+         (!(= @params (. (VAL @robotName) (VAL @goal) .)))
+         (!(Actions.checkPreconditions go @params @result))
+         (IF(?(EQUAL @result FALSE))
+            (!(ReportManager.publish ExecutionManager.report @executionId "FAILURE"))
+            (!(FAILED))
+            )
+
+
+         (IF(?(ExecutionManager.isActive execution SIM))
+            (!(Actions.setPostconditions go @params))
+            (!(ReportManager.publish ExecutionManager.report @executionId "OK"))
+            (!(FAILED))
+            )
+
+         (=>(ExecutionManager.isExecutingAction @executionId))
+         (!(Viman.getFreeId @vimanId))
+         (=>(Viman.request stopTracking @vimanId))
+         (!(ExecutionManager.handleReport Viman @vimanId @executionId FALSE FALSE (. .)))
+
+	
+	(IF(?(Robot.paramNav NAV))
+	ELSE
+	  (!(SEND-MESSAGE Navigation (switchToNav) ))
+	  (~>(Robot.paramNav @old))
+	  (=>(Robot.paramNav NAV))
+	  )
+
+	(IF(?(Robot.armPosture NAV))
+	  ELSE
+	  (!(ExecutionManager.getFreeId @poseId))
+         (=>(ExecutionManager.execute moveToPose (. NAV .) @poseId))
+         (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))
+	  )
+
+	(IF(?(PathPlanner.isActive TRUE))
+               (!(PathPlanner.getFreeId @pathPlannerId))
+               (=>(PathPlanner.plan @source @goal @pathPlannerId))
+               (!(ExecutionManager.handleReport PathPlanner @pathPlannerId @executionId TRUE TRUE NO_NAME))
+               (?(PathPlanner.result @pathPlannerId @path))
+               ;;get coordinates in these nodes
+               (!(PathPlanner.getCoordinates @path @waypoints))
+
+               ELSE
+
+               (?(PathPlanner.coordinates go (VAL @goal) @x @y @theta))
+               (!(= @waypoints (. (. @x @y @theta .) .)))
+               )
+
+
+            ;;move to place
+            (!(BaseActions.getFreeId @baseActionsId))
+            (=>(BaseActions.action move @waypoints @baseActionsId))
+            (!(ExecutionManager.handleReport BaseActions @baseActionsId @executionId FALSE TRUE (. .)))
+
+
+	(~>(ExecutionManager.isExecutingAction @executionId))
+
+            (!(Actions.setPostconditions go @params))
+
+            (!(Viman.getFreeId @vimanId))
+            (=>(Viman.request activateTracking @vimanId))
+            (!(ExecutionManager.handleReport Viman @vimanId @executionId FALSE FALSE (. .)))
+
+            (!(ReportManager.publish ExecutionManager.report  (VAL @executionId) "OK"))
+
+  )
+
+)
+
+(defop |goAndApproach|
+  :invocation (ExecutionManager.execute goAndApproach @parameters  @executionId)
   :documentation "Operation to make the robot reach a destination. @goal is the node in the map the should be reached, @subgoal the item"
   :body (
 
@@ -1158,9 +1340,66 @@
   
   )
 
+
+(defop |disengage|
+  :invocation(ExecutionManager.execute disengage @parameters @executionId)
+  :body (
+        (~>(Mhp.previousTask @oldId @oldAltId))
+         (=>(Mhp.previousTask -2 -2))
+
+         (!(= @goal (CAR @parameters)))
+
+         (?(Robot.name @robotName))
+         (!(= @checkParameters @robotName @goal))
+
+
+         (IF(?(ExecutionManager.isActive execution SIM))
+;           (!(Actions.setPostconditions go @checkParameters))
+            (!(ReportManager.publish ExecutionManager.report @executionId "OK"))
+            (!(FAILED))
+            )
+
+
+         (=>(ExecutionManager.isExecutingAction @executionId))
+         (!(Viman.getFreeId @vimanId))
+         (=>(Viman.request stopTracking @vimanId))
+         (!(ExecutionManager.handleReport Viman @vimanId @executionId FALSE FALSE (. .)))
+
+	(!(BaseActions.getFreeId @baseActionsId))
+         (=>(BaseActions.action moveSeconds 2 b @baseActionsId))
+         (!(ExecutionManager.handleReport BaseActions @baseActionsId @executionId TRUE TRUE (. .)))
+
+	(~>(ExecutionManager.isExecutingAction @executionId))
+
+;         (!(Actions.setPostconditions go @checkParameters))
+
+         (!(Viman.getFreeId @vimanId))
+         (=>(Viman.request activateTracking @vimanId))
+         (!(ExecutionManager.handleReport Viman @vimanId @executionId FALSE FALSE (. .)))
+
+	(!(= @setFacts (.
+			 (AGENT-STATEMENT (VAL @robotName) (VAL @goal) isEngagedInArea false)
+                          .)
+               ))
+	(!(= @removeFacts (. .)))
+	(!(= @addFacts (. .)))
+	(!(DatabaseInterface.addSetRemoveFacts @addFacts @setFacts @removeFacts @result))
+
+         (!(ReportManager.publish ExecutionManager.report  (VAL @executionId) "OK"))
+
+
+
+
+  )
+
+)
+
 (defop |approach|
   :invocation(ExecutionManager.execute approach @parameters @executionId)
   :body (
+	(~>(Mhp.previousTask @oldId @oldAltId))
+         (=>(Mhp.previousTask -2 -2))
+
 	 (!(= @goal (CAR @parameters)))
 	 
 	 (?(Robot.name @robotName))
@@ -1182,12 +1421,34 @@
 
 	 (?(PathPlanner.coordinates approach (VAL @goal) @x @y @theta))
 	 (!(= @waypoints (. (. @x @y @theta .) .)))
-             
+	
+	(IF(?(Robot.armPosture MANIPULATION_RIGHT))
+	  ELSE
+          (!(ExecutionManager.getFreeId @poseId))
+         (=>(ExecutionManager.execute moveToPose (. MANIPULATION_RIGHT .) @poseId))
+         (!(ExecutionManager.handleReport ExecutionManager @poseId @executionId TRUE TRUE (. .) ))
+          )
+
+
+	(IF(?(Robot.paramNav APPROACH))
+	ELSE             
 	 (!(SEND-MESSAGE Navigation (switchToApproach) ))
+	 (~>(Robot.paramNav @old))
+	 (=>(Robot.paramNav APPROACH))
+	  )
 
 	 (!(BaseActions.getFreeId @baseActionsId))
 	 (=>(BaseActions.action move @waypoints @baseActionsId))
 	 (!(ExecutionManager.handleReport BaseActions @baseActionsId @executionId FALSE TRUE (. .)))
+
+
+	(!(= @setFacts (.
+                         (AGENT-STATEMENT (VAL @robotName) (VAL @goal) isEngagedInArea true)
+                          .)
+               ))
+        (!(= @removeFacts (. .)))
+        (!(= @addFacts (. .)))
+        (!(DatabaseInterface.addSetRemoveFacts @addFacts @setFacts @removeFacts @result))
 
 
          (~>(ExecutionManager.isExecutingAction @executionId))

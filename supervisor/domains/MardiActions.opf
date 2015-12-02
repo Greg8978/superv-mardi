@@ -60,8 +60,10 @@
        		    (=>(ExecutionManager.isExecutingAction @executionId))
 
        		   	(!(HeadActions.getFreeId @scanId))
-       		   	(=>(HeadActions.action exploreHead @scanId))
+       		   	(=>(HeadActions.scan (VAL @location) (VAL @object) @scanId))
        		   	(!(ExecutionManager.handleReport HeadActions @scanId @executionId TRUE TRUE (. .)))
+
+
 
        		   	(!(Actions.setPostconditions scan @precondParameters))
 
@@ -79,4 +81,420 @@
 			)
 
 		)
+
+
+	(defop |scanLivingroomtable|
+                :invocation (HeadActions.scan Livingroom_table @object @actionId)
+                :body (
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+	(=>(HeadActions.report @actionId "OK"))
+	(!(FAILED))
+	ELSE
+	 (!(HeadActions.getFreeId @headId))
+    	(!(ReportManager.sub HeadActions.report @headId))	
+    	(=>(HeadActions.action moveHead -0.5 0.5 @headId))
+    	(^(HeadActions.report (VAL @headId) @report))
+    	(~>(HeadActions.report (VAL @headId) @report))
+    	(!(ReportManager.unsub HeadActions.report @headId))
+	)
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.3 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.1 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.1 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.3 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.5 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(=>(HeadActions.report @actionId "OK"))
+
+	)
+	)
+
+
+	(defop |scanLivingroomcoffeetable|
+                :invocation (HeadActions.scan Livingroom_coffeetable @object @actionId)
+                :body (
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_coffeetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+	(=>(HeadActions.report @actionId "OK"))
+	(!(FAILED))
+	ELSE
+	 (!(HeadActions.getFreeId @headId))
+    	(!(ReportManager.sub HeadActions.report @headId))	
+    	(=>(HeadActions.action moveHead -0.3 0.6 @headId))
+    	(^(HeadActions.report (VAL @headId) @report))
+    	(~>(HeadActions.report (VAL @headId) @report))
+    	(!(ReportManager.unsub HeadActions.report @headId))
+	)
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_coffeetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.1 0.6 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_coffeetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.1 0.6 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_coffeetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.3 0.6 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Livingroom_coffeetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.5 0.6 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(=>(HeadActions.report @actionId "OK"))
+
+	)
+	)
+
+	
+	(defop |scanBedroomBedside|
+                :invocation (HeadActions.scan Bedroom_bedsidetable @object @actionId)
+                :body (
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_bedsidetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+	(=>(HeadActions.report @actionId "OK"))
+	(!(FAILED))
+	ELSE
+	 (!(HeadActions.getFreeId @headId))
+    	(!(ReportManager.sub HeadActions.report @headId))	
+    	(=>(HeadActions.action moveHead 0.3 0.5 @headId))
+    	(^(HeadActions.report (VAL @headId) @report))
+    	(~>(HeadActions.report (VAL @headId) @report))
+    	(!(ReportManager.unsub HeadActions.report @headId))
+	)
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_bedsidetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.1 0.4 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_bedsidetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.1 0.6 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_bedsidetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.1 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_bedsidetable) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.3 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+
+	(=>(HeadActions.report @actionId "OK"))
+
+	)
+	)
+
+	
+	(defop |scanBedroomshelf|
+                :invocation (HeadActions.scan Bedroom_shelf @object @actionId)
+                :body (
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+	(=>(HeadActions.report @actionId "OK"))
+	(!(FAILED))
+	ELSE
+	 (!(HeadActions.getFreeId @headId))
+    	(!(ReportManager.sub HeadActions.report @headId))	
+    	(=>(HeadActions.action moveHead 0.1 0.4 @headId))
+    	(^(HeadActions.report (VAL @headId) @report))
+    	(~>(HeadActions.report (VAL @headId) @report))
+    	(!(ReportManager.unsub HeadActions.report @headId))
+	)
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.1 0.3 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.3 0.3 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.3 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.5 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Bedroom_shelf) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.7 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(=>(HeadActions.report @actionId "OK"))
+
+	)
+	)
+
+
+	(defop |scanKitchentable|
+                :invocation (HeadActions.scan Kitchen_table @object @actionId)
+                :body (
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+	(=>(HeadActions.report @actionId "OK"))
+	(!(FAILED))
+	ELSE
+	 (!(HeadActions.getFreeId @headId))
+    	(!(ReportManager.sub HeadActions.report @headId))	
+    	(=>(HeadActions.action moveHead 0.3 0.6 @headId))
+    	(^(HeadActions.report (VAL @headId) @report))
+    	(~>(HeadActions.report (VAL @headId) @report))
+    	(!(ReportManager.unsub HeadActions.report @headId))
+	)
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead 0.1 0.4 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.1 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.3 0.7 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.5 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt Kitchen_table) @result))
+        (IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
+        (=>(HeadActions.report @actionId "OK"))
+        (!(FAILED))
+        ELSE
+         (!(HeadActions.getFreeId @headId))
+        (!(ReportManager.sub HeadActions.report @headId))
+        (=>(HeadActions.action moveHead -0.7 0.5 @headId))
+        (^(HeadActions.report (VAL @headId) @report))
+        (~>(HeadActions.report (VAL @headId) @report))
+        (!(ReportManager.unsub HeadActions.report @headId))
+        )
+
+	(=>(HeadActions.report @actionId "OK"))
+
+	)
+	)
+
 )

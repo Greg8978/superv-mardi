@@ -250,6 +250,9 @@
 
 	     ELSEIF(?(EQUAL @configurationName NAV))
 	     (!(= @configurationName navPoseRight))
+
+	   ELSEIF(?(EQUAL @configurationName EXTENDED))
+	    (!(= @configurationName handoverRight))
 	     )
 
      ;(!(Mhp.getFreeId @id))
@@ -359,12 +362,10 @@
                       (=>(ArmActions.action openGripper RIGHT @id))
                       (!(GtpActions.handleReport ArmActions @id @gtpId))
 
-                      (!(Spark.getFreeId @sparkId))
-                      (=>(Spark.request placeObject @object @rx @ry 0.85 0 0 0 @sparkId))
-                      (!(GtpActions.handleReport Spark @sparkId @gtpId))
+                     ; (!(Spark.getFreeId @sparkId))
+                     ; (=>(Spark.request placeObject @object @rx @ry 0.85 0 0 0 @sparkId))
+                     ; (!(GtpActions.handleReport Spark @sparkId @gtpId))
 
-			(!(PRINT "HEEEEERE"))
-			(!(PRINT @subTrajName))
 
                       (IF(?(GtpActions.objectAttachment @oldTaskId))
                          (~>(GtpActions.objectAttachment (VAL @oldTaskId)))

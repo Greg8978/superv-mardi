@@ -8,4 +8,10 @@
 	(AGENT-STATEMENT PR2_ROBOT Bedroom_bedsidetable scanned true)
 	(AGENT-STATEMENT PR2_ROBOT Bedroom_shelf scanned false)
 	(AGENT-STATEMENT PR2_ROBOT Kitchen scanned false)
+
+	(AGENT-STATEMENT PR2_ROBOT Livingroom_table isEngagedInArea false)
+	(AGENT-STATEMENT PR2_ROBOT Livingroom_coffeetable isEngagedInArea false)
+	(AGENT-STATEMENT PR2_ROBOT Bedroom_bedsidetable isEngagedInArea false)
+	(AGENT-STATEMENT PR2_ROBOT Bedroom_shelf isEngagedInArea false)
+	(AGENT-STATEMENT PR2_ROBOT Kitchen_table isEngagedInArea false)
 )
