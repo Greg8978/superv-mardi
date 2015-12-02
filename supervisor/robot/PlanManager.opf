@@ -9,8 +9,10 @@
  (defop |addGoal|
    :invocation(!(PlanManager.addGoal @goal @parameters))
    :body (
-          (=>(PlanManager.goal @goal @parameters))
-          (=>(PlanManager.newGoal TRUE))
+
+
+          	(=>(PlanManager.goal @goal @parameters))
+          	(=>(PlanManager.newGoal TRUE))
 
           )
 
@@ -37,7 +39,7 @@
                    ELSEIF(?(PlanManager.newGoal TRUE))
                    (=>(PlanManager.newGoal FALSE)) ;we are treating the goal so it's no longer new
                    (?(PlanManager.goal @goal @parameters))
-
+		   (=>(PlanManager.actualGoal @goal))
                    ELSEIF(?(AgentActionMonitor.unexpectedAction @agent))
                    (~>(AgentActionMonitor.unexpectedAction @agente))
                    (!(PlanManager.chooseGoal @goal @parameters))
@@ -57,15 +59,15 @@
                       (IF(?(PlanManager.planningModality ROBOT))  ;if robot plans he warns the user that it is planning
                          (IF(?(EQUAL @planningFailures 0))
                                         ; (!(Acapela.say "Let me think of a plan..."))
-                            (!(Verbalization.initPlan))
+                           ; (!(Verbalization.initPlan))
 
 
                             ELSE
                                         ; (!(Acapela.say "Let me think of another plan.."))
-                            (!(Verbalization.verbalizeReplan))
+                            ;(!(Verbalization.verbalizeReplan))
                             
                             )
-                         (^(ELAPSED-TIME (TIME) 1))
+                       ;  (^(ELAPSED-TIME (TIME) 1))
                          )
 
 
@@ -83,7 +85,7 @@
 
                          ELSEIF(?(EQUAL @report OK))
                          (^(PlannerInterface.result @plan @planTree))
-                         (~>(PlannerInterface.result (VAL @plan)))
+                         (~>(PlannerInterface.result (VAL @plan) @planTree))
 
               
                         (IF(?(EQUAL @planningFailures 0))
@@ -92,7 +94,7 @@
                         )       
 
 
-                         (!(Verbalization.verbalizePlan))
+                        ; (!(Verbalization.verbalizePlan))
                         ; (!(Tester.breakpoint))
                                         ; (IF(?(&(PlanManager.planningModality ROBOT) (PlanManager.shouldTellPlan TRUE)))  ;if the robot is leader for an agent it will verbalize the plan
                                         ; (!(PlanManager.tellPlan @plan))
@@ -105,7 +107,7 @@
                             (!(PlanManager.analyzePlanTree @planTree @monitorActions))
 
 
-                            (!(Tester.breakpoint))
+                           ;; (!(Tester.breakpoint))
 
                             (=>(PlanManager.monitorPlan HERAKLES_HUMAN1 @monitorActions))
                      
@@ -113,6 +115,8 @@
                             )
 
                          (WHILE(?(~(NULL @plan)))
+				(!(PRINT "PLAN:::"))
+				(!(PRINT @plan))
                                         ;get agent
                                (!(= @anAgent (CAR @plan)))
                                (!(= @plan (CDR @plan)))
@@ -207,19 +211,24 @@
 
                                      )
                                (IF(?(EQUAL @status notCompleted))
-                                  (^(ELAPSED-TIME (TIME) @timeToRetry))
+                               ;   (^(ELAPSED-TIME (TIME) @timeToRetry))
                                   )
                                (!(PlanManager.clean))
                                )
                          )
+			(IF(?(PlanManager.waitEndGoal))
+			   (~>(PlanManager.waitEndGoal))
+			   (=>(PlanManager.endGoal))
+			)
                       (IF(?(EQUAL @status completed))
                          (=>(PlanManager.report "OK"))
                                         ; (!(Acapela.say "Task completed"))
-
+			(~>(PlanManager.actualGoal @goal))
                          ELSE
                                         ; (!(Acapela.say "Abandoning Task"))
                          (=>(PlanManager.report FAILED))
-                         )
+                        (~>(PlanManager.actualGoal @goal)) 
+			)
                       )
 
                 (~>(PlanManager.isRunning TRUE))
@@ -231,7 +240,7 @@
    :documentation "used to clean facts at the end of a plan"
    :body (
 
-        (!(Tester.breakpoint))
+        ;(!(Tester.breakpoint))
           (WHILE(?(PlanManager.actionReport @action @report))
                 (~>(PlanManager.actionReport (VAL @action) (VAL @report)))
                 )
@@ -379,7 +388,7 @@
             (^(AttentionalInterface.isDone @done))
 
             )
-
+	 
         ;(IF(?(~(EQUAL @actionId -1)))
         ;(=>( PlanManager.actionReport @actionId "OK"))
         ;)
@@ -594,7 +603,7 @@
 ;                             )
 ;            ))
 ;            (!(= @isLinkedToRobotTemp FALSE))
-;            (!(Tester.breakpoint))
+;            ;(!(Tester.breakpoint))
 
 ;            (IF(?(&(EQUAL @taskType ACTION) (EQUAL @isMiddleSon TRUE)))
 ;             (WHILE(?(&(~(NULL @linkList) (EQUAL @isLinkedToRobotTemp FALSE))))
@@ -778,7 +787,7 @@
          (?(Robot.name @robotName))
           (=>(PlanManager.isManagingAgent @agent))
 
-         (!(Tester.breakpoint))
+         ;(!(Tester.breakpoint))
          (WHILE(?(&(~(NULL @taskList )) (~(PlanManager.stopAgent (VAL @agent)))))
                (!(= @task (CAR @taskList)))
                (!(= @taskList (CDR @taskList)))
@@ -1002,8 +1011,8 @@
 
                   ELSE
                                         ;verbalize action
-                  (!(PlanManager.getActionString @actionName @actionParameters 0 @oldObject @followsHandover @actionString))
-                  (!(Acapela.say @actionString))
+              ;    (!(PlanManager.getActionString @actionName @actionParameters 0 @oldObject @followsHandover @actionString))
+               ;   (!(Acapela.say @actionString))
                   (!(PRINT "ROBOT: "))
                   (!(PRINT @actionString))
                                         ;execute action
@@ -1020,15 +1029,17 @@
                      )
                   (=>(ExecutionManager.execute @actionName @actionParameters @executionId))
                   (^(|| (ExecutionManager.report (VAL @executionId) @report) (PlanManager.stopAgent robot)))
-                  (^(ELAPSED-TIME (TIME) 1))
+                  ;(^(ELAPSED-TIME (TIME) 1))
                   (IF(?(ExecutionManager.report (VAL @executionId) @report))
-                     (!(ReportManager.unsub ExecutionManager.report @executionId))
+                    (~>(ExecutionManager.report (VAL @executionId) @report)) 
+		    (!(ReportManager.unsub ExecutionManager.report @executionId))
                      (IF(?(~(EQUAL @report "OK")))
                         (=>(PlanManager.agentReport robot "FAILURE"))
                         (~>(PlanManager.isManagingAgent robot))
                         (=>(PlanManager.failedAction @actionId))
                         (!(FAILED))
                         )
+
 
                      (=>(PlanManager.actionReport @actionId "OK"))
                      (IF(?(PlanManager.verbalization end @taskId (VAL @actionId)))
@@ -1039,6 +1050,7 @@
                      ELSE
                      (=>(ExecutionManager.stop @executionId))
                      (^(ExecutionManager.report (VAL @executionId) @report))
+		     (~>(ExecutionManager.report (VAL @executionId) @report))
                      (!(ReportManager.unsub ExecutionManager.report @executionId))
                      (=>(PlanManager.agentReport robot "STOPPED"))
                      (~>(PlanManager.isManagingAgent robot))

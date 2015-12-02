@@ -2,12 +2,18 @@
 	(PathPlanner.bridgeName PathPlannerOprs)
 	(PathPlanner.timeToWait 10)
 
-	(PathPlanner.coordinates Livingroom_table 6.3 6.1 0)
-	(PathPlanner.coordinates Bedroom_shelf 2.986 3.8 1.593)
-	(PathPlanner.coordinates Bedroom_bedsidetable 3.65 2.84 -1.546)
-	(PathPlanner.coordinates Kitchen_table 0.892 6.92 0.023)
-	(PathPlanner.coordinates Livingroom_coffeetable 4.9 7.27 3.097)
-
+	(PathPlanner.coordinates go Livingroom_table 6.3 6.1 0)
+	(PathPlanner.coordinates go Bedroom_shelf 2.7 3.8 1.593)
+	(PathPlanner.coordinates go Bedroom_bedsidetable 3.65 2.84 -1.546)
+	(PathPlanner.coordinates go Kitchen_table 0.892 6.92 0.023)
+	(PathPlanner.coordinates go Livingroom_coffeetable 4.9 7.27 3.097)
+	
+	(PathPlanner.coordinates approach Livingroom_table 6.556 6.0 0.196)
+	(PathPlanner.coordinates approach Bedroom_shelf 2.7 4.25 1.593)
+	(PathPlanner.coordinates approach Bedroom_bedsidetable 4.05 2.44 -1.546)
+	(PathPlanner.coordinates approach Kitchen_table 1.30 6.92 0.023)
+	(PathPlanner.coordinates approach Livingroom_coffeetable 4.5 7.423 -3.12)
+	
 
 
     (PathPlanner.translate WORK_LOCATION_1A WORK_LOCATION_1)

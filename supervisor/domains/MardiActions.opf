@@ -65,14 +65,14 @@
 
        		   	(!(Actions.setPostconditions scan @precondParameters))
 
-       		   	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isOn (VAL @location)) @result))
+       		   	(!(DatabaseInterface.find (AGENT-STATEMENT (VAL @robotName) (VAL @object) isAt (VAL @location)) @result))
        
-       		   	(IF(?(EQUAL @result (. TRUE .)))
+       		   	(IF(?(& (EQUAL @result (. TRUE .)) (PlanManager.actualGoal Localise)))
 
-       		   	(=>(ExecutionManager.report (VAL @executionId) "OK"))
-       		   	
+       		   	(=>(ExecutionManager.report (VAL @executionId) "DONE"))
+
        		   	ELSE 
-       		   	(=>(ExecutionManager.report (VAL @executionId) "FAILURE"))
+       		   	(=>(ExecutionManager.report (VAL @executionId) "OK"))
        		   	)
        		   	(~>(ExecutionManager.isExecutingAction @executionId))
 

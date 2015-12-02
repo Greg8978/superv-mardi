@@ -52,7 +52,7 @@
              (!(= @parameters (CDR @parameters)))
              )
 
-          (!(= @addFacts (. (AGENT-STATEMENT (VAL @robotName) (VAL @agent) hasInHand (VAL @object)) .)))
+          (!(= @addFacts (. (AGENT-STATEMENT (VAL @robotName) (VAL @agent) hasInHand (VAL @object)) (AGENT-STATEMENT (VAL @robotName) (VAL @agent) holding (VAL @object))  .)))
           (!(= @setFacts (.
                             (AGENT-STATEMENT (VAL @robotName) (VAL @agent) (VAL @arm) (VAL @object))
                           .)
@@ -137,6 +137,7 @@
              (!(= @arm RIGHT))
              )
           (!(= @removeFacts (. (AGENT-STATEMENT (VAL @robotName) (VAL @agent) hasInHand (VAL @object))
+				(AGENT-STATEMENT (VAL @robotName) (VAL @agent) holding (VAL @object))
                                (AGENT-STATEMENT (VAL @robotName) (VAL @agent) (VAL @arm) (VAL @object))
                                .)))
           (!(= @addFacts (. .)))
@@ -167,11 +168,11 @@
             (!(= @y (CAR @position)))
   ;;          (!(== (VAL @position) (. @x @y @z .)))
 
-  (!(Spark.getFreeId @sparkId))
-  (!(ReportManager.sub Spark.report @sparkId))
-  (=>(Spark.request placeObjectForSimu (VAL @object) @x @y 0.75 0 0 0 0 @sparkId))
-  (^(Spark.report (VAL @sparkId) @report))
-  (!(ReportManager.unsub Spark.report @sparkId))
+ ; (!(Spark.getFreeId @sparkId))
+ ; (!(ReportManager.sub Spark.report @sparkId))
+ ; (=>(Spark.request placeObjectForSimu (VAL @object) @x @y 0.75 0 0 0 0 @sparkId))
+ ; (^(Spark.report (VAL @sparkId) @report))
+ ; (!(ReportManager.unsub Spark.report @sparkId))
 )
           (!(AgentActionMonitor.cleanObjectMonitorSpheres @placement))
 	  (IF(?(~(EQUAL @agent @robotName)))

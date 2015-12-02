@@ -4,3 +4,4 @@ declare ff BaseActions.freeId 0
 declare cwp BaseActions.response      ;;response @name @status reported from the ros module when it completed the navigation (failing or succeding)
 declare cwp BaseActions.report        ;;report issued by this modules
 declare cwp BaseActions.update        ;;update @name @status  is an update from the ros module that is issued every time a new waypoint is reached
+declare be BaseActions.action

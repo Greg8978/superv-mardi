@@ -294,6 +294,86 @@
 	  )
    )
 
+(defop |planTaskGtpSpec|
+  :invocation(Mhp.request planTaskGtpSpec @task @object @placement @data @dataElement @point @x @y @z @id)
+  :documentation "Manage the request of a GTP plan in the case where inputs aren't already gave, do the smoothing too"
+  :body (
+
+	 (?(Mhp.previousTask @previousTaskId @previousTaskAlternativeId))
+	 (IF(?(EQUAL @task pick))
+	    (!(= @previousTaskId -1))
+	    (!(= @previousTaskAlternativeId -1))
+	 	 (!(Mhp.getFreeId @id2))
+	    (=>(Mhp.request removeGtpAttachments @id2))
+		 (^(Mhp.report (VAL @id2) @report))
+		 (~>(Mhp.report (VAL @id2) @report))
+		
+		(!(Mhp.getFreeId @id3))
+		(=>(Mhp.request clearGtpAttachmentSaved @id3))
+		(^(Mhp.report (VAL @id3) @report))
+                 (~>(Mhp.report (VAL @id3) @report))
+	    )
+
+	  (!(= @params 
+	      (STRUCT_TASK_INPUT_SPEC 
+           (type 
+              (name  (TERM-STRING-CAT @task)))
+
+           (agentKey1 
+              (name  (TERM-STRING-CAT mainAgent)))
+
+           (agentValue1 
+              (name  (TERM-STRING-CAT PR2_ROBOT)))
+
+           (objectKey1 
+              (name  (TERM-STRING-CAT mainObject)))
+
+           (objectValue1 
+              (name  (TERM-STRING-CAT @object)))
+
+           (objectKey2 
+              (name  (TERM-STRING-CAT supportObject)))
+
+           (objectValue2 
+              (name  (TERM-STRING-CAT @placement)))
+
+           (dataKey1 
+              (name  (TERM-STRING-CAT @data)))
+
+           (dataValue1 
+              (name  (TERM-STRING-CAT @dataElement)))
+
+           (pointKey1 
+              (name  (TERM-STRING-CAT @point)))
+
+           (pointValue1 
+              (x  @x)
+              (y  @y)
+              (z  @z))
+
+           (previousTaskId  @previousTaskId)
+           (previousTaskAlternativeId  @previousTaskAlternativeId)
+           (computeMotionPlan  GEN_TRUE)
+           (dummy  GEN_TRUE))
+))
+	 (!(GenomInterface.handleRequest MHP MHP_PLANGTPTASKSPEC (Mhp.stop (VAL @id)) (FALSE) (FALSE) 300 @params @report @result))
+	 (=>(Mhp.report (VAL @id) (VAL @report)))
+	 (IF(?(EQUAL @report "OK"))
+	    (!(== (VAL @result) (STRUCT_TASK_OUTPUT 
+				 (taskId  @newTaskId)
+				 (taskAlternativeId  @newTaskAId)
+				 (cost @cost)
+				 (return_report @reportDetails)
+				 )))
+	    (~>(Mhp.previousTask @a @b))
+	    (=>(Mhp.previousTask @newTaskId @newTaskAId))
+	    )
+	  
+	 )
+  )  
+  
+
+
 (defop |initGtp|
   :invocation(Mhp.request initGtp @id)
   :documentation "inits the geometrical task planner module"

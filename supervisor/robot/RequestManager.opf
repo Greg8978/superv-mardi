@@ -5,10 +5,27 @@
 	(defop |getRequest|
 	       :invocation(RequestManager.request @goal @parameters @caller)
 	       :body (
+
+          (IF(?(|| (EQUAL @goal Move) (EQUAL @goal Bring)))
+                (!(= @object (CAR @parameters)))
+                (!(DatabaseInterface.findList (AGENT-STATEMENT PR2_ROBOT  (VAL @object) isAt @s) (. @s .) @result))
+                (IF(?(NULL @result))
+                        (!(= @newGoal Localise))
+                        (!(= @newParam (. (VAL @object) .)))
+                        (=>(PlanManager.waitEndGoal))
+                        (=>(PlanManager.goal @newGoal @newParam))
+                        (=>(PlanManager.newGoal TRUE))
+                        (^(PlanManager.endGoal))
+                        (~>(PlanManager.endGoal))
+                )
+           )
+
+
+
 		      (=>(PlanManager.goal (VAL @goal) (VAL @parameters)))
 		      (=>(PlanManager.newGoal TRUE))
 		      (^(PlanManager.report @report))
-;		      (!(SEND-MESSAGE @caller (RequestManager.report @report)))
+		      (!(SEND-MESSAGE @caller (RequestManager.report @report)))
 		      
 		      )
 	       )

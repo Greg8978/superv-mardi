@@ -61,23 +61,23 @@
       (~>(Mhp.previousTask @oldId @oldAltId))
       (=>(Mhp.previousTask -2 -2))
 
-      (!(Mhp.getFreeId @id))
-      (=>(Mhp.request removeGtpAttachments @id))
-      (!(GtpActions.handleReport Mhp @id @gtpId))
+     ; (!(Mhp.getFreeId @id))
+     ; (=>(Mhp.request removeGtpAttachments @id))
+     ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
-	  (!(Mhp.getFreeId @id))
-	  (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
-	  (!(GtpActions.handleReport Mhp @id @gtpId))
+	;  (!(Mhp.getFreeId @id))
+	 ; (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
+	  ;(!(GtpActions.handleReport Mhp @id @gtpId))
 
-	  (!(Mhp.getFreeId @id))
-	  (=>(Mhp.request addGtpObject mainObject @object @id))
-	  (!(GtpActions.handleReport Mhp @id @gtpId))
+	 ; (!(Mhp.getFreeId @id))
+	 ; (=>(Mhp.request addGtpObject mainObject @object @id))
+	 ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
-	  (!(Mhp.getFreeId @id))
-	  (=>(Mhp.request addGtpData hand @hand @id))
-      (!(GtpActions.handleReport Mhp @id @gtpId))
+	;  (!(Mhp.getFreeId @id))
+	 ; (=>(Mhp.request addGtpData hand @hand @id))
+      ;(!(GtpActions.handleReport Mhp @id @gtpId))
 
-      (!(GtpActions.executeTask "pick" @arm @object NO_NAME @gtpId))
+      (!(GtpActions.executeTask "pick" @arm @object NO_NAME hand @hand @gtpId))
       )
    )
 
@@ -108,17 +108,17 @@
          (~>(Mhp.previousTask @oldId @oldAltId))
          (=>(Mhp.previousTask -2 -2))
 
-         (!(Mhp.getFreeId @id))
-         (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
-         (!(GtpActions.handleReport Mhp @id @gtpId))
+        ; (!(Mhp.getFreeId @id))
+        ; (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
+        ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
-         (!(Mhp.getFreeId @id))
-         (=>(Mhp.request addGtpObject mainObject @mainObject @id))
-         (!(GtpActions.handleReport Mhp @id @gtpId))
+        ; (!(Mhp.getFreeId @id))
+        ; (=>(Mhp.request addGtpObject mainObject @mainObject @id))
+        ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
-         (!(Mhp.getFreeId @id))
-         (=>(Mhp.request addGtpObject supportObject @supportObject @id))
-         (!(GtpActions.handleReport Mhp @id @gtpId))
+        ; (!(Mhp.getFreeId @id))
+        ; (=>(Mhp.request addGtpObject supportObject @supportObject @id))
+        ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
          ;; (IF(?(~(NULL @target)))
          ;;    (!(= (VAL @target) (. @x @y @theta .)))
@@ -127,9 +127,9 @@
       ;;    (!(GtpActions.handleReport Mhp @id @gtpId))
       ;;    )
 
-	  (!(Mhp.getFreeId @id))
- 	  (=>(Mhp.request addGtpData hand @hand @id))
-	  (!(GtpActions.handleReport Mhp @id @gtpId))
+	;  (!(Mhp.getFreeId @id))
+ 	;  (=>(Mhp.request addGtpData hand @hand @id))
+	;  (!(GtpActions.handleReport Mhp @id @gtpId))
 
       ;; (IF(?(~(EQUAL @placement NO_NAME )))
       ;;  (!(Spark.getFreeId @sparkId))
@@ -161,7 +161,7 @@
       (=>(Mhp.request addGtpAttachmentFromTask @id 0 @mhpId))
       (!(GtpActions.handleReport Mhp @mhpId @gtpId))
 
-      (!(GtpActions.executeTask "place" @arm @mainObject @supportObject @gtpId))
+      (!(GtpActions.executeTask "place" @arm @mainObject @supportObject hand @hand @gtpId))
 	 )
   )
 
@@ -252,13 +252,13 @@
 	     (!(= @configurationName navPoseRight))
 	     )
 
-      (!(Mhp.getFreeId @id))
-	  (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
-	  (!(GtpActions.handleReport Mhp @id @gtpId))
+     ;(!(Mhp.getFreeId @id))
+;	  (=>(Mhp.request addGtpAgent mainAgent @robotName @id))
+;	  (!(GtpActions.handleReport Mhp @id @gtpId))
 
-      (!(Mhp.getFreeId @id))
-	  (=>(Mhp.request addGtpData confName @configurationName @id))
-	  (!(GtpActions.handleReport Mhp @id @gtpId))
+ ;     (!(Mhp.getFreeId @id))
+;	  (=>(Mhp.request addGtpData confName @configurationName @id))
+;	  (!(GtpActions.handleReport Mhp @id @gtpId))
 
 
       (IF(?(GtpActions.objectAttachment @id))
@@ -268,33 +268,38 @@
 
       )
 
-      (!(GtpActions.executeTask "moveto" RIGHT NO_NAME NO_NAME @gtpId))
+      (!(GtpActions.executeTask "moveto" RIGHT NO_NAME NO_NAME confName @configurationName @gtpId))
 	 
 	  )
   )
 
 
  (defop |executeTask|
-   :invocation(!(GtpActions.executeTask @task @arm @object @support @gtpId))
+   :invocation(!(GtpActions.executeTask @task @arm @object @support @datakey @dataElement @gtpId))
    :body (
 
           (?(Robot.name @robotName))
 
           (!(= @task (MAKE-ATOM @task)))
 
-          (!(Mhp.getFreeId @id))
-          (=>(Mhp.request fetchEnvironment @id))
-          (!(GtpActions.handleReport Mhp @id @gtpId))
+         ; (!(Mhp.getFreeId @id))
+         ; (=>(Mhp.request fetchEnvironment @id))
+         ; (!(GtpActions.handleReport Mhp @id @gtpId))
 	  
-          (!(Mhp.getFreeId @id))
-          (=>(Mhp.request planGtpTask @task @id))
-          (!(GtpActions.handleReport Mhp @id @gtpId))
+          ;(!(Mhp.getFreeId @id))
+          ;(=>(Mhp.request planGtpTask @task @id))
+          ;(!(GtpActions.handleReport Mhp @id @gtpId))
+
+
+	(!(Mhp.getFreeId @id))
+	(=>(Mhp.request planTaskGtpSpec @task @object @support @datakey @dataElement NO_NAME 0.0 0.0 0.0 @id))
+	(!(GtpActions.handleReport Mhp @id @gtpId))
 
           (?(Mhp.previousTask @taskId @alternativeId))
 
-          (!(Mhp.getFreeId @id))
-          (=>(Mhp.request smoothGtpTraj @taskId @alternativeId @id))
-          (!(GtpActions.handleReport Mhp @id @gtpId))
+         ; (!(Mhp.getFreeId @id))
+         ; (=>(Mhp.request smoothGtpTraj @taskId @alternativeId @id))
+         ; (!(GtpActions.handleReport Mhp @id @gtpId))
 
           (!(Mhp.getFreeId @id))
           (=>(Mhp.request getGtpTaskDetails @taskId @alternativeId @id))
@@ -357,6 +362,9 @@
                       (!(Spark.getFreeId @sparkId))
                       (=>(Spark.request placeObject @object @rx @ry 0.85 0 0 0 @sparkId))
                       (!(GtpActions.handleReport Spark @sparkId @gtpId))
+
+			(!(PRINT "HEEEEERE"))
+			(!(PRINT @subTrajName))
 
                       (IF(?(GtpActions.objectAttachment @oldTaskId))
                          (~>(GtpActions.objectAttachment (VAL @oldTaskId)))
